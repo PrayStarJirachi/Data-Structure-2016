@@ -1,0 +1,14 @@
+#include "common.hpp"
+#include "deque.hpp"
+
+#include <ctime>
+#include <iostream>
+#include <deque>
+#include <random>
+
+std::default_random_engine randnum(time(NULL));
+
+static const int N = 20000;
+
+int main() {
+}
