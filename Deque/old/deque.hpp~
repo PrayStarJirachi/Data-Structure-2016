@@ -117,39 +117,19 @@ private:
 		auxList.clear();
 		threshold = static_cast<size_t>(ceil(sqrt(total)));
 		typename List<T>::ListNode *it = data.head -> next;
-		for (int i = 0, tmp = 0; i < total; i++) {
+		for (int i = 0; i < total; i++) {
 			if (i % threshold == 0) {
 				auxList.addHead(static_cast<typename List<AuxPtr>::ListNode *>(auxList.tail), 
 						        AuxPtr(it, std::min(threshold, total - i)));
-				tmp = 0;
 			}
 			it = it -> next;
 		}
 		auxList.addHead(static_cast<typename List<AuxPtr>::ListNode *>(auxList.tail), AuxPtr(it, 0));
 	}
-	void reBlock(const typename List<T>::ListNode *dataptr, typename List<AuxPtr>::ListNode *&auxptr, size_t &rank) {
-		if (dataptr == data.tail) {
-			auxptr = auxList.tail -> back;
-			rank = 0;
-			return;
-		}
-		for (typename List<AuxPtr>::ListNode *it = auxList.head -> next; it != auxList.tail; it = it -> next) {
-			typename List<T>::ListNode *p = it -> data.data;
-			for (int i = 0; i < it -> data.size; i++) {
-				if (p == dataptr) {
-					rank = i;
-					auxptr = it;
-					return;
-				}
-				p = p -> next;
-			}
-		}
-	}
-	inline void maintain(const typename List<T>::ListNode *dataptr, typename List<AuxPtr>::ListNode *&auxptr, size_t &rank) {
+	inline void maintain(typename List<AuxPtr>::ListNode *&auxptr) {
 		size_t tmp = static_cast<size_t>(ceil(sqrt(total)));
 		if (threshold * 2 < tmp || threshold > 2 * tmp) {
 			reAllocate();
-			reBlock(dataptr, auxptr, rank);
 			return;
 		}
 		while (auxptr -> data.size * 2 < threshold && auxptr -> next != auxList.tail -> back) {
@@ -157,7 +137,6 @@ private:
 			auxList.remove(auxptr -> next);
 		}
 		while (auxptr -> data.size * 2 < threshold && auxptr -> back != auxList.head) {
-			rank += auxptr -> back -> data.size;
 			auxptr -> back -> data.size += auxptr -> data.size;
 			typename List<AuxPtr>::ListNode *it = auxptr;
 			auxptr = auxptr -> back;
@@ -170,10 +149,6 @@ private:
 			}
 			auxList.addTail(auxptr, AuxPtr(now, (auxptr -> data.size) - threshold));
 			auxptr -> data.size = threshold;
-			if (rank >= auxptr -> data.size) {
-				rank -= auxptr -> data.size;
-				auxptr = auxptr -> next;
-			}
 		}
 	}
 
@@ -245,9 +220,6 @@ public:
 			return ret;
 		}
 		inline int operator -(const iterator &rhs) const {
-			if (address != rhs.address) {
-				throw runtime_error();
-			}
 			return static_cast<int>(id) - static_cast<int>(rhs.id);
 		}
 		inline iterator & operator +=(const int &n) {
@@ -277,9 +249,6 @@ public:
 			return *this = *this - 1;
 		}
 		inline T & operator *() const {
-			if (id >= address -> total) {
-				throw invalid_iterator();
-			}
 			return ptr.first -> data;
 		}
 		inline T * operator->() const noexcept {
@@ -292,14 +261,13 @@ public:
 			return ptr.first == rhs.ptr.first;
 		}
 		inline bool operator !=(const iterator &rhs) const {
-			return ptr.first != rhs.ptr.first || ptr.second != rhs.ptr.second || rank != rhs.rank;
+			return ptr.first != rhs.ptr.first;
 		}
 		inline bool operator !=(const const_iterator &rhs) const {
 			return ptr.first != rhs.ptr.first;
 		}
 
 	};
-	
 	class const_iterator {
 	friend class deque<T>;
 	private:
@@ -434,28 +402,22 @@ public:
 		reAllocate();
 		return *this;
 	}
-	inline T & at(const int &pos) {
+	inline T & at(const size_t &pos) {
 		return *(begin() + pos);
 	}
-	inline const T & at(const int &pos) const {
+	inline const T & at(const size_t &pos) const {
 		return *(cbegin() + pos);
 	}
-	inline T & operator[](const int &pos) {
+	inline T & operator[](const size_t &pos) {
 		return at(pos);
 	}
-	inline const T & operator[](const int &pos) const {
+	inline const T & operator[](const size_t &pos) const {
 		return at(pos);
 	}
 	inline const T & front() const {
-		if (total == 0) {
-			throw container_is_empty();
-		}
 		return data.head -> next -> data;
 	}
 	inline const T & back() const {
-		if (total == 0) {
-			throw container_is_empty();
-		}
 		return data.tail -> back -> data;
 	}
 	inline iterator begin() {
@@ -469,7 +431,7 @@ public:
 					    auxList.tail -> back), total, 0);
 	}
 	inline const_iterator cend() const {
-		return const_iterator(this, ConstPtrPair(static_cast<typename List<T>::ListNode *>(data.tail), 
+		return const_iterator(this, PtrPair(static_cast<typename List<T>::ListNode *>(data.tail), 
 					          auxList.tail -> back), total, 0);
 	}
 	inline bool empty() const {
@@ -481,8 +443,6 @@ public:
 	inline void clear() {
 		data.clear();
 		auxList.clear();
-		auxList.addTail(static_cast<typename List<AuxPtr>::ListNode *>(auxList.head), 
-				 AuxPtr(static_cast<typename List<T>::ListNode *>(data.tail), 0));
 		total = 0;
 		threshold = 0;
 	}
@@ -495,7 +455,7 @@ public:
 		if (total == 1) {
 			auxList.addTail(static_cast<typename List<AuxPtr>::ListNode *>(auxList.head), AuxPtr(pos.ptr.first -> back, 1));
 			threshold = 1;
-			return iterator(this, PtrPair(pos.ptr.first -> back, auxList.head -> next), 0, 0);
+			return iterator(this, PtrPair(pos.ptr.first -> back, auxList.tail -> back), 0, 0);
 		}
 		if (pos.ptr.second -> data.data == pos.ptr.first) {
 			auxList.addHead(pos.ptr.second, AuxPtr(pos.ptr.first -> back, pos.ptr.second -> data.size));
@@ -507,7 +467,7 @@ public:
 		}
 		pos.ptr.first = pos.ptr.first -> back;
 		pos.ptr.second -> data.size++;
-		maintain(pos.ptr.first, pos.ptr.second, pos.rank);
+		maintain(pos.ptr.second);
 		return pos;
 	}
 	iterator erase(iterator pos) {
@@ -521,19 +481,16 @@ public:
 			auxList.remove(pos.ptr.second);
 			pos.ptr.second = tmp;
 		}
-		if (--pos.ptr.second -> data.size == 0) {
-			typename List<AuxPtr>::ListNode *tmp = pos.ptr.second -> next;
-			auxList.remove(pos.ptr.second);
-			pos.ptr.second = tmp;
-		}
 		pos.ptr.first = pos.ptr.first -> next;
-		if (pos.ptr.first == pos.ptr.second -> next -> data.data) {
-			pos.ptr.second = pos.ptr.second -> next;
-			pos.rank = 0;
-		}
-		data.remove(pos.ptr.first -> back);
+		pos.ptr.second -> data.size--;
 		if (pos.ptr.second != auxList.tail -> back) {
-			maintain(pos.ptr.first, pos.ptr.second, pos.rank);
+			if (pos.ptr.second == 0) {
+				typename List<AuxPtr>::ListNode *tmp = pos.ptr.second -> next;
+				auxList.remove(pos.ptr.second);
+				pos.ptr.second = tmp;
+			}
+			data.remove(pos.ptr.first -> back);
+			maintain(pos.ptr.second);
 		}
 		return pos;
 	}
@@ -548,13 +505,6 @@ public:
 	}
 	inline void pop_front() {
 		erase(begin());
-	}
-	inline int max()const {
-		size_t ret = auxList.total;
-		for (auto it = auxList.head -> next; it != auxList.tail; it = it -> next) {
-			ret = std::max(ret, it -> data.size);
-		}
-		return ret;
 	}
 
 	virtual ~deque() {}

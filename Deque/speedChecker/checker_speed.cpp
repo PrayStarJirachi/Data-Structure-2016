@@ -1189,11 +1189,11 @@ static CheckerPair TEST_A[] = {
 	std::make_pair("Iterator Series -> - operator testing...", iteratorMinusOperatorChecker),
 	std::make_pair("Iterator Series -> Iterator insert persistence testing...", iteratorInsertPersistenceChecker),
 	std::make_pair("Iterator Series -> Iterator erase persistence testing...", iteratorErasePersistenceChecker),
-	//std::make_pair("Robustness Series -> Invalid visitation by []...", errorBracketChecker),
-	//std::make_pair("Robustness Series -> Invalid visitation by at...", errorAtChecker),
-	//std::make_pair("Robustness Series -> Invalid visitation by iterator...", errorIteratorChecker),
-	//std::make_pair("Robustness Series -> Invalid insert operation...", errorInsertChecker),
-	//std::make_pair("Robustness Series -> Invalid erase operation...", errorEraseChecker),
+	std::make_pair("Robustness Series -> Invalid visitation by []...", errorBracketChecker),
+	std::make_pair("Robustness Series -> Invalid visitation by at...", errorAtChecker),
+	std::make_pair("Robustness Series -> Invalid visitation by iterator...", errorIteratorChecker),
+	std::make_pair("Robustness Series -> Invalid insert operation...", errorInsertChecker),
+	std::make_pair("Robustness Series -> Invalid erase operation...", errorEraseChecker),
 	std::make_pair("Basic Series -> size function testing...", sizeChecker),
 	std::make_pair("Basic Series -> empty function testing...", emptyChecker),
 	std::make_pair("Independence Series -> Copy constructor testing...", copyConstructorChecker),
@@ -1452,7 +1452,6 @@ std::pair<bool, double> atTimer() {
 		else if (op == 1) a.push_front(rand());
 		else if (op == 2) a.insert(a.begin() + rand() % (a.size() + 1), rand());
 	}
-	std::cout << a.max() << std::endl;
 	timer.init();
 	for (int i = 0; i < N_SPEED; i++) {
 		a.at(i) = rand();
@@ -1499,7 +1498,7 @@ static CheckerPair TEST_B[] = {
 };
 
 #define __SPEED_TEST
-#define __CORRECT_TEST
+#define __OFFICAL
 
 int main() {
 #ifndef __OFFICAL

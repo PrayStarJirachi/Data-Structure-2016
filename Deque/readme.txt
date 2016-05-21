@@ -1,0 +1,3 @@
+fullChecker 为两个Checker的综合，属于线下自测的工具
+speedChecker 为速度测试Checker，我的程序大概跑14.35s和9.60s(-O2)
+correcnessChecker 为正确性测试的工具，正常的程序应该要在2s内跑出来

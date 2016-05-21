@@ -245,8 +245,8 @@ public:
 			return ret;
 		}
 		inline int operator -(const iterator &rhs) const {
-			if (address != rhs.address) {
-				throw runtime_error();
+			if (address == rhs.address) {
+				throw invalid_iterator();
 			}
 			return static_cast<int>(id) - static_cast<int>(rhs.id);
 		}
@@ -366,6 +366,9 @@ public:
 			return ret;
 		}
 		inline int operator -(const const_iterator &rhs) const {
+			if (address == rhs.address) {
+				throw invalid_iterator();
+			}
 			return static_cast<int>(id) - static_cast<int>(rhs.id);
 		}
 		inline const_iterator & operator +=(const int &n) {
